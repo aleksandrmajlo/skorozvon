@@ -34,7 +34,6 @@
                                 <td>{{$contact->inn}}</td>
                                 <td>{{$contact->phone}}</td>
                                 <td>{{$contact->organization}}</td>
-{{--                                <td></td>--}}
                                 @if($banks)
                                     @foreach($banks as $bank)
                                         <td>

@@ -1,47 +1,37 @@
 <?php
 
-namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-
+namespace App\Services;
+use App\Models\Action;
 use App\Models\City;
+use App\Models\Contact;
+use App\Models\ContactLog;
+use App\Models\Dublicate;
+
+
+use App\Models\Log;
 use App\Models\Tariff;
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7;
-use Illuminate\Support\Facades\DB;
+use GuzzleHttp\RequestOptions;
 
-class BankOtkrytie extends Command
+class Bank1
 {
-
-    protected $signature = 'otkrytie:cron';
-
-
-    protected $description = 'Обновление данных банка открытие';
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
+    private static $bank_id = 1;
+    // получение городов тарифов
+    public static function getCityTariff()
     {
-        parent::__construct();
-    }
-
-    public function handle()
-    {
-
-        $bank_id = 2;
-        $bank_config = config('bank.2');
+        $bank_config = config('bank.1');
         $headers = [
-            'x-auth-token' => $bank_config['token'],
-            'Accept' => 'application/json',
-            'content-type' => 'multipart/form-data',
+            'api-key' => $bank_config['token'],
+            'content-type' => 'multipart/form-data;application/json;charset=UTF-8',
         ];
         $client = new Client([
             'base_uri' => $bank_config['host'],
         ]);
+
         // город
         try {
             $response = $client->request('GET',
@@ -51,13 +41,12 @@ class BankOtkrytie extends Command
             // тут добавляем города
             $response = json_decode($response);
             if ($response) {
-                DB::table('cities')->truncate();
-//                City::where('bank_id', $bank_id)->delete();
-                foreach ($response as $item) {
+
+                foreach ($response->values as $item) {
                     $city = new City();
-                    $city->title = $item->city;
+                    $city->title = $item->name;
                     $city->idd = $item->id;
-                    $city->bank_id = $bank_id;
+                    $city->bank_id = self::$bank_id;
                     $city->save();
                 }
             }
@@ -67,6 +56,7 @@ class BankOtkrytie extends Command
                 echo Psr7\Message::toString($e->getResponse());
             }
         }
+        /*
         // тариф
         try {
             $response = $client->request('GET',
@@ -76,13 +66,12 @@ class BankOtkrytie extends Command
             // тут добавляем тариф
             $response = json_decode($response);
             if ($response) {
-//                Tariff::where('bank_id', $bank_id)->delete();
-                DB::table('tariffs')->truncate();
+
                 foreach ($response->tariffs as $item) {
                     $tariff = new Tariff();
                     $tariff->title = $item->name;
                     $tariff->idd = $item->id;
-                    $tariff->bank_id = $bank_id;
+                    $tariff->bank_id = self::$bank_id;
                     $tariff->save();
                 }
             }
@@ -92,6 +81,7 @@ class BankOtkrytie extends Command
                 echo Psr7\Message::toString($e->getResponse());
             }
         }
+        */
 
     }
 }

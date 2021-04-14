@@ -16,6 +16,7 @@ use App\Services\Bank2;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7;
+use Illuminate\Support\Facades\DB;
 
 
 class TestController extends Controller
@@ -328,6 +329,19 @@ class TestController extends Controller
                     break;
             }
         }
+    }
+
+    public function action(){
+        $banks=Bank::get();
+        DB::table('actions')->truncate();
+        foreach ($banks as $bank){
+            switch ($bank->id) {
+                case 2:
+                    Bank2::ActionGet();
+                    break;
+            }
+        }
+
     }
 
 }

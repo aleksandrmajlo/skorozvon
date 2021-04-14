@@ -71,15 +71,22 @@ $(document).ready(function () {
         let id = $(this).data('id');
         let city = $('.bank_city_' + id).val();
         let tariff = $('.bank_tariff_' + id).val();
+        let action = $('.bank_action_' + id).val();
         let contact_id = $(this).data('contact_id');
         let comment = $('[name="mes_' + id + '"]').val();
+        let acquiring = 0;
+        if ($('[name="ACQUIRING_' + id + '"]').prop('checked')) {
+            acquiring = 1;
+        }
         axios
             .post("/ajax/contact/sendBankContac", {
                 bank_id: id,
                 city_id: city,
                 tariff_id: tariff,
+                action_id: action,
                 contact_id: contact_id,
-                comment: comment
+                comment: comment,
+                acquiring: acquiring
             })
             .then((response) => {
                 if (response.data.suc) {

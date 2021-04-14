@@ -111,8 +111,8 @@
             <td>Статус</td>
             <td>CityCode</td>
             <td>ProductCode</td>
-            <td></td>
-            <td></td>
+            <td>Тип акции</td>
+            <td style="width: 33%;"></td>
         </tr>
         </thead>
         <tbody>
@@ -145,7 +145,14 @@
                         </select>
                     </td>
                     <td>
-                      <textarea placeholder="Cообщение" name="mes_{{$bank->id}}" class="form-control"></textarea>
+                        <select name="action" class="bank_action_{{$bank->id}}" data-id="{{$bank->id}}">
+                            <option value="" disabled selected>Выбрать</option>
+                            @if($bank->actions)
+                                @foreach($bank->actions as $action)
+                                    <option value="{{$action->idd}}">{{$action->title}}</option>
+                                @endforeach
+                            @endif
+                        </select>
                     </td>
                     <td>
                         @if($bank_data[$bank->id]['value']===0)
@@ -153,7 +160,18 @@
                                 class="send_bank button_{{$bank->id}}"
                                 data-contact_id="{{$contact->id}}"
                                 data-id="{{$bank->id}}"
-                                disabled class="btn btn-default">ОТПРАВИТЬ</button>
+                                disabled class="btn btn-default">ОТПРАВИТЬ
+                            </button>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="ACQUIRING_{{$bank->id}}" value="" id="ACQUIRING_{{$bank->id}}">
+                                <label class="form-check-label" for="ACQUIRING_{{$bank->id}}">
+                                    ПРОДАН ЭКВАЙРИНГ
+                                </label>
+                            </div>
+
+                            <textarea placeholder="Cообщение" name="mes_{{$bank->id}}"
+                                      class="form-control mt-2"></textarea>
                         @endif
                     </td>
                 </tr>
@@ -163,7 +181,6 @@
                     <td class="text-center">
                         @include('contacts.onebank')
                     </td>
-
                     <td>
                         <select name="city" class="bank_city_{{$bank->id}}" data-id="{{$bank->id}}">
                             <option value="-1">Выбирите город</option>
@@ -185,7 +202,14 @@
                         </select>
                     </td>
                     <td>
-                        <textarea placeholder="Cообщение" name="mes_{{$bank->id}}" class="form-control"></textarea>
+                        <select name="action" class="bank_action_{{$bank->id}}" data-id="{{$bank->id}}">
+                            <option value="" disabled selected>Выбрать</option>
+                            @if($bank->actions)
+                                @foreach($bank->actions as $action)
+                                    <option value="{{$action->idd}}">{{$action->title}}</option>
+                                @endforeach
+                            @endif
+                        </select>
                     </td>
                     <td>
                         @if($bank_data[$bank->id]['value']===0)
@@ -195,6 +219,14 @@
                                 data-id="{{$bank->id}}"
                                 disabled class="btn btn-default">ОТПРАВИТЬ
                             </button>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="ACQUIRING_{{$bank->id}}" value="1" id="ACQUIRING_{{$bank->id}}">
+                                <label class="form-check-label" for="ACQUIRING_{{$bank->id}}">
+                                    ПРОДАН ЭКВАЙРИНГ
+                                </label>
+                            </div>
+                            <textarea placeholder="Cообщение" name="mes_{{$bank->id}}"
+                                      class="form-control mt-2"></textarea>
                         @endif
                     </td>
                 </tr>
@@ -205,5 +237,5 @@
     </table>
 </div>
 <contact-bank contact_id="{{$contact->id}}"></contact-bank>
-<a  href="/statusreport" id="get_result_report" class="d-none">Получить результат </a>
+<a href="/statusreport" id="get_result_report" class="d-none">Получить результат </a>
 

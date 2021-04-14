@@ -3,11 +3,15 @@
 
 namespace App\Services;
 
+use App\Models\Action;
+use App\Models\City;
 use App\Models\Contact;
 use App\Models\ContactLog;
 use App\Models\Dublicate;
 
+
 use App\Models\Log;
+use App\Models\Tariff;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -23,8 +27,70 @@ class Bank2
 {
     private static $bank_id = 2;
 
+    // получение городов тарифов
+    public static function getCityTariff(){
+
+        $bank_config = config('bank.2');
+        $headers = [
+            'x-auth-token' => $bank_config['token'],
+            'Accept' => 'application/json',
+            'content-type' => 'multipart/form-data',
+        ];
+        $client = new Client([
+            'base_uri' => $bank_config['host'],
+        ]);
+        // город
+        try {
+            $response = $client->request('GET',
+                $bank_config['city'],
+                ['headers' => $headers]
+            )->getBody()->getContents();
+            // тут добавляем города
+            $response = json_decode($response);
+            if ($response) {
+
+                foreach ($response as $item) {
+                    $city = new City();
+                    $city->title = $item->city;
+                    $city->idd = $item->id;
+                    $city->bank_id = self::$bank_id;
+                    $city->save();
+                }
+            }
+        } catch (RequestException $e) {
+            echo Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                echo Psr7\Message::toString($e->getResponse());
+            }
+        }
+        // тариф
+        try {
+            $response = $client->request('GET',
+                $bank_config['tariff'],
+                ['headers' => $headers]
+            )->getBody()->getContents();
+            // тут добавляем тариф
+            $response = json_decode($response);
+            if ($response) {
+
+                foreach ($response->tariffs as $item) {
+                    $tariff = new Tariff();
+                    $tariff->title = $item->name;
+                    $tariff->idd = $item->id;
+                    $tariff->bank_id = self::$bank_id;
+                    $tariff->save();
+                }
+            }
+        } catch (RequestException $e) {
+            echo Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                echo Psr7\Message::toString($e->getResponse());
+            }
+        }
+    }
+
     // отправка заяки  в банк!!!!!!
-    public static function send($contact_id, $tariff_id, $city,$comment='')
+    public static function send($contact_id, $tariff_id, $city, $comment = '',$action_id='',$acquiring=0)
     {
 
         $contact = Contact::find($contact_id);
@@ -48,42 +114,92 @@ class Bank2
         }
 
         try {
-            $response = $client->post($url, [
-                'headers' => $headers,
-                'multipart' => [
-                    [
-                        'name' => 'full_name',
-                        'contents' => $contact->fullname
-                    ],
-                    [
-                        'name' => 'inn',
-                        'contents' => $contact->inn
-                    ],
-                    [
-                        'name' => 'email',
-                        'contents' => $contact->email
-                    ],
-                    [
-                        'name' => 'phone',
-                        'contents' => $contact->phone
-                    ],
-                    [
-                        'name' => 'tariff',
-                        'contents' => $tariff_id
-                    ],
-                    [
-                        'name' => 'city',
-                        'contents' => $city->title,
-                    ],
-                    [
-                        'name' => 'comment',
-                        'contents' => $comment,
-                    ],
-                ]
-            ])->getBody()->getContents();
+            //  promotion
+            if($action_id){
+                $response = $client->post($url, [
+                    'headers' => $headers,
+                    'multipart' => [
+                        [
+                            'name' => 'full_name',
+                            'contents' => $contact->fullname
+                        ],
+                        [
+                            'name' => 'inn',
+                            'contents' => $contact->inn
+                        ],
+                        [
+                            'name' => 'email',
+                            'contents' => $contact->email
+                        ],
+                        [
+                            'name' => 'phone',
+                            'contents' => $contact->phone
+                        ],
+                        [
+                            'name' => 'tariff',
+                            'contents' => $tariff_id
+                        ],
+                        [
+                            'name' => 'city',
+                            'contents' => $city->title,
+                        ],
+                        [
+                            'name' => 'comment',
+                            'contents' => $comment,
+                        ],
+                        [
+                            'name' => 'promotion',
+                            'contents' => $action_id,
+                        ],
+                        [
+                            'name' => 'acquiring',
+                            'contents' => $acquiring,
+                        ],
+                    ]
+                ])->getBody()->getContents();
+            }else{
+                $response = $client->post($url, [
+                    'headers' => $headers,
+                    'multipart' => [
+                        [
+                            'name' => 'full_name',
+                            'contents' => $contact->fullname
+                        ],
+                        [
+                            'name' => 'inn',
+                            'contents' => $contact->inn
+                        ],
+                        [
+                            'name' => 'email',
+                            'contents' => $contact->email
+                        ],
+                        [
+                            'name' => 'phone',
+                            'contents' => $contact->phone
+                        ],
+                        [
+                            'name' => 'tariff',
+                            'contents' => $tariff_id
+                        ],
+                        [
+                            'name' => 'city',
+                            'contents' => $city->title,
+                        ],
+                        [
+                            'name' => 'comment',
+                            'contents' => $comment,
+                        ],
+                        [
+                            'name' => 'acquiring',
+                            'contents' => $acquiring,
+                        ],
+                    ]
+                ])->getBody()->getContents();
+            }
+
             $response = json_decode($response);
             $resust['idd'] = $response->id;
-            $resust['status']='inqueue';
+            $resust['status'] = 'inqueue';
 
             // логирование
             $log = Log::create([
@@ -94,7 +210,9 @@ class Bank2
                     'tariff_id' => $tariff_id,
                     'city' => $city->title,
                     'bank_id' => self::$bank_id,
-                    'comment'=>$comment
+                    'comment' => $comment,
+                    'action_id'=>$action_id,
+                    'acquiring'=>$acquiring
                 ],
                 'answer' => ['idd' => $response->id],
                 'type' => 'POST ' . $bank_config['host'] . $url,
@@ -102,10 +220,10 @@ class Bank2
 
             // логирование для контактов
             $contactlog = new ContactLog;
-            $contactlog->type='5';
-            $contactlog->user_id=Auth::user()->id;
-            $contactlog->contact_id=$contact->id;
-            $contactlog->bank_id=self::$bank_id;
+            $contactlog->type = '5';
+            $contactlog->user_id = Auth::user()->id;
+            $contactlog->contact_id = $contact->id;
+            $contactlog->bank_id = self::$bank_id;
             $contactlog->save();
 
 
@@ -127,10 +245,7 @@ class Bank2
                 'type' => 'POST ' . $bank_config['host'] . $url,
             ]);
         }
-
         return $resust;
-
-
     }
 
     // проверка статуса отправленной заявки
@@ -181,14 +296,14 @@ class Bank2
                     ->update([
                         'status' => $response->status,
                         'message' => $response->label,
-                        'user_id'=>$report->user_id,
+                        'user_id' => $report->user_id,
                         'updated_at' => Carbon::now()
                     ]);
             } else {
                 DB::table('bank_contact')->insert([
                     'contact_id' => $report->contact_id,
                     'bank_id' => self::$bank_id,
-                    'user_id'=>$report->user_id,
+                    'user_id' => $report->user_id,
                     'status' => $response->status,
                     'message' => $response->label,
                     'created_at' => Carbon::now(),
@@ -197,16 +312,16 @@ class Bank2
             }
 
             //
-            $user_id=null;
-            if(Auth::user()){
-                $user_id=Auth::user()->id;
+            $user_id = null;
+            if (Auth::user()) {
+                $user_id = Auth::user()->id;
             }
             // логирование для контактов
             $contactlog = new ContactLog;
-            $contactlog->type='6';
-            $contactlog->user_id=$user_id;
-            $contactlog->contact_id=$report->contact_id;
-            $contactlog->bank_id=self::$bank_id;
+            $contactlog->type = '6';
+            $contactlog->user_id = $user_id;
+            $contactlog->contact_id = $report->contact_id;
+            $contactlog->bank_id = self::$bank_id;
             $contactlog->status = $response->status;
             $contactlog->save();
 
@@ -230,8 +345,17 @@ class Bank2
     }
 
     // отправка запроса на дублирование
-    public static function InnDublicate($inns)
+    public static function InnDublicate($inns,$contact_id)
     {
+
+        // проверка или нету отправленной заявки в банк
+        $report=Contact::where('id',$contact_id)->whereHas('reports', function ($query) {
+            $query->where('bank_id', self::$bank_id);
+        })->count();
+        if($report>0){
+           return false;
+        }
+
         $bank_config = config('bank.' . self::$bank_id);
         $headers = [
             'x-auth-token: ' . $bank_config['token'],
@@ -344,16 +468,16 @@ class Bank2
                                 }
 
                                 //
-                                $user_id=null;
-                                if(Auth::user()){
-                                    $user_id=Auth::user()->id;
+                                $user_id = null;
+                                if (Auth::user()) {
+                                    $user_id = Auth::user()->id;
                                 }
                                 $contactlog = new ContactLog;
-                                $contactlog->type='4';
-                                $contactlog->status=$inn->inn_status;
-                                $contactlog->user_id=$user_id;
-                                $contactlog->contact_id=$contact->id;
-                                $contactlog->bank_id=self::$bank_id;
+                                $contactlog->type = '4';
+                                $contactlog->status = $inn->inn_status;
+                                $contactlog->user_id = $user_id;
+                                $contactlog->contact_id = $contact->id;
+                                $contactlog->bank_id = self::$bank_id;
                                 $contactlog->save();
 
 
@@ -377,6 +501,42 @@ class Bank2
             ]);
         }
 
+
+    }
+
+    // получение акций
+    public static function ActionGet()
+    {
+        $bank_config = config('bank.' . self::$bank_id);
+        $headers = [
+            'x-auth-token' => $bank_config['token'],
+            'Accept' => 'application/json',
+            'content-type' => 'multipart/form-data',
+        ];
+        $client = new Client([
+            'base_uri' => $bank_config['host'],
+        ]);
+        try {
+            $response = $client->request('GET',
+                $bank_config['action'],
+                ['headers' => $headers]
+            )->getBody()->getContents();
+            $response = json_decode($response);
+            if ($response->promotions) {
+                foreach ($response->promotions as $promotion) {
+                    $action = new Action();
+                    $action->title = $promotion->name;
+                    $action->idd = $promotion->id;
+                    $action->bank_id = self::$bank_id;
+                    $action->save();
+                }
+            }
+        } catch (RequestException $e) {
+            echo Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                echo Psr7\Message::toString($e->getResponse());
+            }
+        }
 
     }
 

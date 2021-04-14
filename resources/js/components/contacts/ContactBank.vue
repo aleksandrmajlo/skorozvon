@@ -32,9 +32,7 @@ export default {
         .post("/ajax/contact/sendBankContacDuplicate", {
           contact_id: this.contact_id,
         })
-        .then((response) => {
-
-        })
+        .then((response) => {})
         .catch((err) => {})
         .then(() => {
           this.intervalShow = true;

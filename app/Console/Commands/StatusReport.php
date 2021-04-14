@@ -41,8 +41,10 @@ class StatusReport extends Command
 
     public function handle()
     {
+        ini_set('memory_limit', '2048M');
         $status = config('reports');
         $reports = Report::get();
+        $counter = 0;
         foreach ($reports as $report) {
             $bank_id = $report->bank_id;
             switch ($bank_id) {
@@ -51,7 +53,8 @@ class StatusReport extends Command
                 case 1:
                     break;
                 case 2:
-                    if ($report->status == $status[$bank_id]) {
+                    if (in_array($report->status, $status['2'])) {
+                        $counter++;
                         Bank2::check($report);
                     }
                     break;

@@ -53,7 +53,7 @@ class ReportController extends Controller
             $query->where('bank_id', $request->bank_id);
         }
         if (($request->has('date_start') && !empty($request->date_start)) && ($request->has('date_end') && !empty($request->date_end))) {
-            $query->whereBetween('created_at', [$request->date_start, $request->date_end]);
+            $query->whereBetween('created_at', [$request->date_start. ' 00:00:00', $request->date_end. ' 23:59:59']);
         }
         if (($request->has('date_start') && !empty($request->date_start)) && empty($request->date_end)) {
             $query->where('created_at', '>=', $request->date_start . ' 00:00:00');

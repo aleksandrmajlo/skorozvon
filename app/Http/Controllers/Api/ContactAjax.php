@@ -105,12 +105,14 @@ class ContactAjax extends Controller
         $city_id = $request->city_id;
         $city = City::where('idd', $city_id)->first();
         $tariff_id = $request->tariff_id;
+        $action_id = $request->action_id;
         $contact_id = $request->contact_id;
         $comment = $request->comment;
+        $acquiring = $request->acquiring;
 
         switch ($bank_id) {
             case 2:
-                $resust = Bank2::send($contact_id, $tariff_id, $city,$comment);
+                $resust = Bank2::send($contact_id, $tariff_id, $city,$comment,$action_id,$acquiring);
                 break;
         }
 
@@ -145,7 +147,7 @@ class ContactAjax extends Controller
         foreach ($banks as $bank) {
             switch ($bank->id) {
                 case 2:
-                    Bank2::InnDublicate($inns);
+                    Bank2::InnDublicate($inns,$contact_id);
                     break;
             }
         }

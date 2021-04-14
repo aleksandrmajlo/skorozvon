@@ -36,7 +36,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('duplicate:check')->everyFiveMinutes();
 
         // тэстовая комманда
-        $schedule->command('test:test')->everyFiveMinutes();
+//        $schedule->command('test:test')->everyFiveMinutes();
     }
 
     /**

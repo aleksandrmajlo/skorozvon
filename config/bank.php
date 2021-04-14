@@ -1,7 +1,24 @@
 <?php
 
 return [
+  
+     '1'=>[
+      'token'=>env('BANK_ALF'),
 
+      'host'=>'https://partner.alfabank.ru',
+
+      'city'=>'/public-api/v2/dictionaries?code=cities',
+      'tariff'=>'/public-api/v2/dictionaries?code=productCode',
+      /*
+      'tariff'=>[
+          'LP_RKO'=>'РКО',
+          'LP_ACQ_TR'=>'Эквайринг (Торговый)',
+          'LP_AKASSA'=>'РКО',
+          'LP_ACQ_TR'=>'РКО',
+      ],
+      */
+     ],
+     
     '2'=>[
         'token'=>env('BANK_OTKRYTIE'),
          'host'=>'https://openpartners.ru',
@@ -21,6 +38,7 @@ return [
          'city'=>'/api/v2/dictionaries/city',
          'tariff'=>'/api/v2/dictionaries/tariff',
 
+         'action'=>'/api/v2/dictionaries/promotion',
 
          'statusText'=>[
 
@@ -31,7 +49,7 @@ return [
               ],
 
                'success'=>[
-                   'text'=>'ПРОВЕРКА В БАНКЕ ВЫПОЛНЕНА',
+                   'text'=>'ПРОВЕРКА ВЫПОЛНЕНА. ДУБЛЕЙ НЕТ',
                    'type'=>'Проверка на дубль',
                    'status'=>0,
                    'inReport'=>false
