@@ -12,6 +12,7 @@ use App\Models\ContactLog;
 
 
 use App\Services\Bank2;
+use App\Services\Bank1;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -146,6 +147,9 @@ class ContactAjax extends Controller
         $banks = Bank::get();
         foreach ($banks as $bank) {
             switch ($bank->id) {
+                case 1:
+                    Bank1::InnDublicate($inns,$contact_id,$contact->phone);
+                    break;
                 case 2:
                     Bank2::InnDublicate($inns,$contact_id);
                     break;
@@ -157,7 +161,6 @@ class ContactAjax extends Controller
         $contactlog->user_id = Auth::user()->id;
         $contactlog->contact_id = $contact_id;
         $contactlog->save();
-
         response()->json(['suc' => true]);
     }
 

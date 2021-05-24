@@ -1931,8 +1931,7 @@ __webpack_require__.r(__webpack_exports__);
       text: "Опросить банки"
     };
   },
-  mounted: function mounted() {// this.interval();
-  },
+  mounted: function mounted() {},
   methods: {
     SendBank: function SendBank() {
       var _this = this;

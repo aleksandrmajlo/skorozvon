@@ -1,5 +1,6 @@
 <div class="reportLoopItem">
-    <span>{{$report->created_at}}</span>
+{{--    <span>{{$report->created_at}}</span>--}}
+    <span>{{$report->updated_at}}</span>
     <span class="spacer pr-1 pl-1">/</span>
     <span>{{$report->user->fio}}</span>
     <span class="spacer pr-1 pl-1">/</span>

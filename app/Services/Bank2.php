@@ -380,14 +380,13 @@ class Bank2
                 'answer' => $response,
                 'type' => 'POST ' . $bank_config['host'] . $url,
             ]);
-
             $duplicate = Dublicate::create([
                 'idd' => $response->id,
                 'inns' => $inns,
                 'bank_id' => self::$bank_id
             ]);
-
         } catch (RequestException $e) {
+
             $error = Psr7\Message::toString($e->getRequest());
             if ($e->hasResponse()) {
                 $error .= Psr7\Message::toString($e->getResponse());

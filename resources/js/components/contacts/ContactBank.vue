@@ -23,7 +23,7 @@ export default {
     };
   },
   mounted() {
-    // this.interval();
+
   },
   methods: {
     SendBank() {

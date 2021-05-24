@@ -156,13 +156,13 @@
                     </td>
                     <td>
                         @if($bank_data[$bank->id]['value']===0)
+
                             <button
                                 class="send_bank button_{{$bank->id}}"
                                 data-contact_id="{{$contact->id}}"
                                 data-id="{{$bank->id}}"
                                 disabled class="btn btn-default">ОТПРАВИТЬ
                             </button>
-
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="ACQUIRING_{{$bank->id}}" value="" id="ACQUIRING_{{$bank->id}}">
                                 <label class="form-check-label" for="ACQUIRING_{{$bank->id}}">
@@ -170,8 +170,7 @@
                                 </label>
                             </div>
 
-                            <textarea placeholder="Cообщение" name="mes_{{$bank->id}}"
-                                      class="form-control mt-2"></textarea>
+                            <textarea placeholder="Cообщение" name="mes_{{$bank->id}}"  class="form-control mt-2"></textarea>
                         @endif
                     </td>
                 </tr>

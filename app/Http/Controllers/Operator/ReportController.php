@@ -34,7 +34,7 @@ class ReportController extends Controller
     {
         $banks = Bank::orderBy('sort')->get();
 
-        $query = Report::orderBy('created_at', 'desc');
+        $query = Report::orderBy('updated_at', 'desc');
         $query->where('user_id', Auth::user()->id);
 
 
@@ -52,15 +52,17 @@ class ReportController extends Controller
         if ($request->has('bank_id')) {
             $query->where('bank_id', $request->bank_id);
         }
+
         if (($request->has('date_start') && !empty($request->date_start)) && ($request->has('date_end') && !empty($request->date_end))) {
-            $query->whereBetween('created_at', [$request->date_start. ' 00:00:00', $request->date_end . ' 23:59:59']);
+            $query->whereBetween('updated_at', [$request->date_start. ' 00:00:00', $request->date_end. ' 23:59:59']);
         }
         if (($request->has('date_start') && !empty($request->date_start)) && empty($request->date_end)) {
-            $query->where('created_at', '>=', $request->date_start . ' 00:00:00');
+            $query->where('updated_at', '>=', $request->date_start . ' 00:00:00');
         }
         if (($request->has('date_end') && !empty($request->date_end)) && empty($request->date_start)) {
-            $query->where('created_at', '<', $request->date_end . ' 23:59:59');
+            $query->where('updated_at', '<', $request->date_end . ' 23:59:59');
         }
+
         foreach ($banks as $bank) {
             if ($request->has('bank_' . $bank->id)&&$request->input('bank_' . $bank->id)!=='not') {
                 $query->where('status', $request->input('bank_' . $bank->id));
