@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7;
+use Illuminate\Support\Facades\DB;
 
 
 class ContactAjax extends Controller
@@ -98,7 +99,7 @@ class ContactAjax extends Controller
 
     }
 
-    // отправка данных в банк
+    // отправка заявки  в  банк
     public function sendBankContac(Request $request)
     {
 
@@ -112,8 +113,13 @@ class ContactAjax extends Controller
         $acquiring = $request->acquiring;
 
         switch ($bank_id) {
+
+            case 1:
+                $result =Bank1::send($contact_id, $tariff_id, $city,$comment,$action_id,$acquiring);
+                break;
+
             case 2:
-                $resust = Bank2::send($contact_id, $tariff_id, $city,$comment,$action_id,$acquiring);
+                $result = Bank2::send($contact_id, $tariff_id, $city,$comment,$action_id,$acquiring);
                 break;
         }
 
@@ -123,22 +129,30 @@ class ContactAjax extends Controller
         $report->tariff_id = $request->tariff_id;
         $report->contact_id = $request->contact_id;
         $report->user_id = Auth::user()->id;
-        $report->input = $resust['input'];
-        $report->idd = $resust['idd'];
-        if ($resust['input']) {
+        $report->input = $result['input'];
+        $report->idd = $result['idd'];
+        if ($result['input']) {
             $report->status = 0;
         } else {
-            $report->status = $resust['status'];
+            $report->status = $result['status'];
         }
         $report->save();
 
-
+        if($result['status']=='inqueue'){
+            //обновляем статус
+            $bank_config_all = config('bank');
+            $message=$bank_config_all[$bank_id]['statusText']['inqueue']['text'];
+            DB::table('bank_contact')
+                ->where('bank_id', $bank_id)
+                ->where('contact_id', $contact_id)
+                ->update(['status' => $result['status'],'message'=>$message]);
+        }
         return response()->json([
             'suc' => true
         ]);
     }
 
-    // проверка на дубли отправка заявки
+    // проверка на дубли
     public function sendBankContacDuplicate(Request $request)
     {
         $contact_id = $request->contact_id;
@@ -161,6 +175,7 @@ class ContactAjax extends Controller
         $contactlog->user_id = Auth::user()->id;
         $contactlog->contact_id = $contact_id;
         $contactlog->save();
+
         response()->json(['suc' => true]);
     }
 

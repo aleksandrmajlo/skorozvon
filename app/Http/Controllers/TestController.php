@@ -54,4 +54,54 @@ class TestController extends Controller
         */
     }
 
+    public function Zajvka(){
+
+        /*
+         * acquiring: 0
+action_id: null
+bank_id: 1
+city_id: "bba16a72-09e1-4f3f-93af-df5ecab6714b"
+comment: ""
+contact_id: 3
+tariff_id: "LP_RKO"
+         */
+        $bank_id = 1;
+        $city_id = "bba16a72-09e1-4f3f-93af-df5ecab6714b";
+        $city = City::where('idd', $city_id)->first();
+        $tariff_id = "LP_RKO";
+        $action_id = null;
+        $contact_id = 95018;
+        $comment = '';
+        $acquiring = 0;
+
+
+
+        $result = Bank1::send($contact_id, $tariff_id, $city,$comment,$action_id,$acquiring);
+
+        $report = new Report;
+        $report->bank_id = $bank_id;
+        $report->city = $city->title;
+        $report->tariff_id = $tariff_id;
+        $report->contact_id = $contact_id;
+        $report->user_id = Auth::user()->id;
+        $report->input = $result['input'];
+        $report->idd = $result['idd'];
+        if ($result['input']) {
+            $report->status = 0;
+        } else {
+            $report->status = $result['status'];
+        }
+        $report->save();
+
+        if($result['status']=='inqueue'){
+            //обновляем статус
+            $bank_config_all = config('bank');
+            $message=$bank_config_all[$bank_id]['statusText']['inqueue']['text'];
+            DB::table('bank_contact')
+                ->where('bank_id', $bank_id)
+                ->where('contact_id', $contact_id)
+                ->update(['status' => $result['status'],'message'=>$message]);
+        }
+    }
+
 }

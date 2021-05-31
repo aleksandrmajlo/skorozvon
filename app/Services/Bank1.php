@@ -18,6 +18,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class Bank1
 {
@@ -165,6 +166,7 @@ class Bank1
         $bank_config = $bank_config_all[self::$bank_id];
 
         $r = $bank->contacts()->where('id', $contact->id)->first();
+//        dd($r->pivot->status);
         if ($r) {
             if (isset($bank_config['statusText'][$r->pivot->status])) {
                 // при проверки заявки
@@ -196,6 +198,112 @@ class Bank1
             ];
         }
         return $bank_data;
+    }
+
+    // отправка заяки  в банк!!!!!!
+    public static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
+    {
+
+        $bank_config = config('bank.' . self::$bank_id);
+        $contact = Contact::find($contact_id);
+        $result = [
+            'idd' => null,
+            'input' => null
+        ];
+        if (env('APP_ENV') === 'testing') {
+            $headers = [
+                'api-key' => $bank_config['token-demo'],
+                'content-type' => 'application/json;charset=UTF-8',
+            ];
+        } else {
+            $headers = [
+                'api-key' => $bank_config['token'],
+                'content-type' => 'application/json;charset=UTF-8',
+            ];
+        }
+        $client = new Client([
+            'base_uri' => $bank_config['host'],
+        ]);
+        $url = $bank_config['add'];
+        try {
+            $phone = $contact->phone;
+            $phone = str_replace('+', '', $phone);
+            $response = $client->post($url, [
+                'headers' => $headers,
+                RequestOptions::JSON => [
+                    'organizationInfo' => [
+                        'organizationName' => $contact->organization,
+                        'inn' => $contact->inn
+                    ],
+                    "contactInfo" => [
+                        [
+                            "fullName" => $contact->fullname,
+                            "phoneNumber" => $phone,
+                            "contactEmail" => $contact->email,
+                        ]
+                    ],
+                    "requestInfo" => [
+                        [
+                            "comment"=>$comment,
+                            "cityCode"=> $city->idd
+                        ]
+                    ],
+                    "productInfo" => [
+                        [
+                            "productCode" => $tariff_id
+                        ]
+                    ]
+                ],
+            ])->getBody()->getContents();
+            $response = json_decode($response);
+            $result['idd'] = $response->id;
+            $result['status'] = 'inqueue';
+
+            // логирование
+            $log = Log::create([
+                'request' => [
+                    'full_name' => $contact->fullname,
+                    'inn' => $contact->inn,
+                    'phone' => $contact->phone,
+                    'tariff_id' => $tariff_id,
+                    'city' => $city->title,
+                    'bank_id' => self::$bank_id,
+                    'comment' => $comment,
+                    'action_id' => $action_id,
+                    'acquiring' => $acquiring
+                ],
+                'answer' => ['idd' => $response->id],
+                'type' => 'POST ' . $bank_config['host'] . $url,
+            ]);
+            // логирование для контактов
+            $contactlog = new ContactLog;
+            $contactlog->type = '5';
+            $contactlog->user_id = Auth::user()->id;
+            $contactlog->contact_id = $contact->id;
+            $contactlog->bank_id = self::$bank_id;
+            $contactlog->save();
+
+        } catch (RequestException $e) {
+
+            $result['input'] = Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                $result['input'] = $result['input'] . Psr7\Message::toString($e->getResponse());
+            }
+            // логирование
+            $log = Log::create([
+                'request' => [
+                    'contact_id' => $contact_id,
+                    'tariff_id' => $tariff_id,
+                    'bank_id' => self::$bank_id,
+                    'city' => $city->title,
+                ],
+                'answer' => ['error' => $result['input']],
+                'type' => 'POST ' . $bank_config['host'] . $url,
+            ]);
+
+        }
+        return $result;
+
     }
 
 }

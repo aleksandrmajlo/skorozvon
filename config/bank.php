@@ -4,10 +4,13 @@ return [
 
     '1' => [
         'token' => env('BANK_ALF'),
+        'token-demo' => 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
 
         'host' => 'https://partner.alfabank.ru',
 
         'city' => '/public-api/v2/dictionaries?code=cities',
+         // отправка  в банк
+        'add' => '/public-api/v2/leads',
 
         'default_tariff' => "LP_RKO",
         'tariff' => [
@@ -40,11 +43,19 @@ return [
                  'inReport' => false
              ],
              
+             'inqueue' => [
+                 'text' => 'Отправляем в банк',
+                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
+                 'status' => 3,
+                 'inReport' => true,
+                 'statusReport' => 1
+             ],
              
         ]
     ],
 
     '2' => [
+        
         'token' => env('BANK_OTKRYTIE'),
         'host' => 'https://openpartners.ru',
 

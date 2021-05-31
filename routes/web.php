@@ -72,8 +72,10 @@ Route::group(['prefix' => 'ajax'], function () {
 // проверка статуса отправленной заявки
 //Route::get('test','App\Http\Controllers\TestController@action');
 //Route::get('test','App\Http\Controllers\TestController@InnDublicateCheck');
-// тэстирование тправки заявки
-Route::get('test','App\Http\Controllers\TestController@sendBankContacDuplicate');
+// проверка на дубли
+//Route::get('test','App\Http\Controllers\TestController@sendBankContacDuplicate');
+// отправка заяви alfa
+Route::get('test','App\Http\Controllers\TestController@Zajvka');
 
 // получение городов и тарифов по крону
 Route::get('cron_city','App\Http\Controllers\CronController@cron_city');

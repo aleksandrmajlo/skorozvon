@@ -38,7 +38,7 @@ class BankContact2
                     'value' => $bank_config['statusText'][$r->pivot->status]['status'],
                     'status' => $r->pivot->status,
                     'statusText' => $bank_config['statusText'][$r->pivot->status],
-                    'message'=>$r->pivot->message
+                    'message' => $r->pivot->message
                 ];
             } else {
                 // проверка или отправлялась заявка

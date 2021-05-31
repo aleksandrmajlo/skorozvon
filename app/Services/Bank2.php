@@ -28,7 +28,8 @@ class Bank2
     private static $bank_id = 2;
 
     // получение городов тарифов
-    public static function getCityTariff(){
+    public static function getCityTariff()
+    {
 
         $bank_config = config('bank.2');
         $headers = [
@@ -41,7 +42,8 @@ class Bank2
         ]);
         // город
         try {
-            $response = $client->request('GET',
+            $response = $client->request(
+                'GET',
                 $bank_config['city'],
                 ['headers' => $headers]
             )->getBody()->getContents();
@@ -65,7 +67,8 @@ class Bank2
         }
         // тариф
         try {
-            $response = $client->request('GET',
+            $response = $client->request(
+                'GET',
                 $bank_config['tariff'],
                 ['headers' => $headers]
             )->getBody()->getContents();
@@ -90,7 +93,7 @@ class Bank2
     }
 
     // отправка заяки  в банк!!!!!!
-    public static function send($contact_id, $tariff_id, $city, $comment = '',$action_id='',$acquiring=0)
+    public static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
     {
 
         $contact = Contact::find($contact_id);
@@ -115,7 +118,7 @@ class Bank2
 
         try {
             //  promotion
-            if($action_id){
+            if ($action_id) {
                 $response = $client->post($url, [
                     'headers' => $headers,
                     'multipart' => [
@@ -157,7 +160,7 @@ class Bank2
                         ],
                     ]
                 ])->getBody()->getContents();
-            }else{
+            } else {
                 $response = $client->post($url, [
                     'headers' => $headers,
                     'multipart' => [
@@ -211,8 +214,8 @@ class Bank2
                     'city' => $city->title,
                     'bank_id' => self::$bank_id,
                     'comment' => $comment,
-                    'action_id'=>$action_id,
-                    'acquiring'=>$acquiring
+                    'action_id' => $action_id,
+                    'acquiring' => $acquiring
                 ],
                 'answer' => ['idd' => $response->id],
                 'type' => 'POST ' . $bank_config['host'] . $url,
@@ -225,8 +228,6 @@ class Bank2
             $contactlog->contact_id = $contact->id;
             $contactlog->bank_id = self::$bank_id;
             $contactlog->save();
-
-
         } catch (RequestException $e) {
 
             $resust['input'] = Psr7\Message::toString($e->getRequest());
@@ -324,7 +325,6 @@ class Bank2
             $contactlog->bank_id = self::$bank_id;
             $contactlog->status = $response->status;
             $contactlog->save();
-
         } catch (RequestException $e) {
             $error = Psr7\Message::toString($e->getRequest());
             if ($e->hasResponse()) {
@@ -340,20 +340,19 @@ class Bank2
                 'answer' => ['error' => $error],
                 'type' => 'GET ' . $bank_config['host'] . $url,
             ]);
-
         }
     }
 
     // отправка запроса на дублирование
-    public static function InnDublicate($inns,$contact_id)
+    public static function InnDublicate($inns, $contact_id)
     {
 
         // проверка или нету отправленной заявки в банк
-        $report=Contact::where('id',$contact_id)->whereHas('reports', function ($query) {
+        $report = Contact::where('id', $contact_id)->whereHas('reports', function ($query) {
             $query->where('bank_id', self::$bank_id);
         })->count();
-        if($report>0){
-           return false;
+        if ($report > 0) {
+            return false;
         }
 
         $bank_config = config('bank.' . self::$bank_id);
@@ -478,14 +477,10 @@ class Bank2
                                 $contactlog->contact_id = $contact->id;
                                 $contactlog->bank_id = self::$bank_id;
                                 $contactlog->save();
-
-
                             }
                         }
-
                     }
                 }
-
             }
         } catch (RequestException $e) {
             $error = Psr7\Message::toString($e->getRequest());
@@ -499,8 +494,6 @@ class Bank2
                 'type' => 'GET ' . $bank_config['host'] . $url,
             ]);
         }
-
-
     }
 
     // получение акций
@@ -516,7 +509,8 @@ class Bank2
             'base_uri' => $bank_config['host'],
         ]);
         try {
-            $response = $client->request('GET',
+            $response = $client->request(
+                'GET',
                 $bank_config['action'],
                 ['headers' => $headers]
             )->getBody()->getContents();
@@ -536,7 +530,5 @@ class Bank2
                 echo Psr7\Message::toString($e->getResponse());
             }
         }
-
     }
-
 }
