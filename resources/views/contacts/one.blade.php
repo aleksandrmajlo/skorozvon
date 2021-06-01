@@ -169,7 +169,6 @@
                                     ПРОДАН ЭКВАЙРИНГ
                                 </label>
                             </div>
-
                             <textarea placeholder="Cообщение" name="mes_{{$bank->id}}"  class="form-control mt-2"></textarea>
                         @endif
                     </td>

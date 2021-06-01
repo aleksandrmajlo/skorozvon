@@ -92,6 +92,197 @@ class Bank2
         }
     }
 
+
+    // отправка запроса на дублирование
+    public static function InnDublicate($inns, $contact_id)
+    {
+
+        // проверка или нету отправленной заявки в банк
+        $report = Contact::where('id', $contact_id)->whereHas('reports', function ($query) {
+            $query->where('bank_id', self::$bank_id);
+        })->count();
+        if ($report > 0) {
+            return false;
+        }
+
+        $bank_config = config('bank.' . self::$bank_id);
+        $headers = [
+            'x-auth-token: ' . $bank_config['token'],
+        ];
+        $client = new Client([
+            'base_uri' => $bank_config['host'],
+        ]);
+        if (env('APP_ENV') === 'testing') {
+            $url = $bank_config['inn_dublicate_test'];
+        } else {
+            $url = $bank_config['inn_dublicate'];
+        }
+        try {
+            $response = $client->post($url, [
+                'headers' => $headers,
+                RequestOptions::JSON => ['inns' => $inns],
+            ])->getBody()->getContents();
+            $response = json_decode($response);
+            // лог общий
+            $log = Log::create([
+                'request' => ['inns' => $inns],
+                'answer' => $response,
+                'type' => 'POST ' . $bank_config['host'] . $url,
+            ]);
+            $duplicate = Dublicate::create([
+                'idd' => $response->id,
+                'inns' => $inns,
+                'bank_id' => self::$bank_id
+            ]);
+        } catch (RequestException $e) {
+
+            $error = Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                $error .= Psr7\Message::toString($e->getResponse());
+            }
+            $log = Log::create([
+                'request' => ['inns' => $inns],
+                'answer' => ['error' => $error],
+                'type' => 'POST ' . $bank_config['host'] . $url,
+            ]);
+        }
+    }
+
+    // проверка отправленной задачи на дубли
+    public static function InnDublicateCheck($duplikate)
+    {
+        $bank_config = config('bank.' . self::$bank_id);
+        $headers = [
+            'x-auth-token: ' . $bank_config['token'],
+        ];
+        $client = new Client([
+            'base_uri' => $bank_config['host'],
+        ]);
+        if (env('APP_ENV') === 'testing') {
+            $url = $bank_config['inn_dublicate_get_test'] . $duplikate->idd;
+        } else {
+            $url = $bank_config['inn_dublicate_get'] . $duplikate->idd;
+        }
+        try {
+            $response = $client->request('GET', $url, [
+                'headers' => $headers
+            ])->getBody()->getContents();
+            $response = json_decode($response);
+            if ($response->status == "done") {
+
+                $duplikate->status = 1;
+                $duplikate->response = $response;
+                $duplikate->save();
+
+                $inns = $response->result->inns;
+                // логирование
+                $log = Log::create([
+                    'request' => ['idd' => $duplikate->idd],
+                    'answer' => $response,
+                    'type' => 'GET ' . $bank_config['host'] . $url,
+                ]);
+                if ($inns) {
+                    foreach ($inns as $inn) {
+                        $contacts = Contact::where('inn', $inn->inn)->get();
+                        if ($contacts) {
+                            $message = null;
+                            if (isset($inn->message)) $message = $inn->message;
+                            foreach ($contacts as $contact) {
+
+                                $r = DB::table('bank_contact')
+                                    ->where('contact_id', $contact->id)
+                                    ->where('bank_id', self::$bank_id)
+                                    ->first();
+
+                                if ($r) {
+                                    DB::table('bank_contact')
+                                        ->where('contact_id', $contact->id)
+                                        ->where('bank_id', self::$bank_id)
+                                        ->update([
+                                            'status' => $inn->inn_status,
+                                            'message' => $message,
+                                            'updated_at' => Carbon::now()
+                                        ]);
+                                } else {
+                                    DB::table('bank_contact')->insert([
+                                        'contact_id' => $contact->id,
+                                        'bank_id' => self::$bank_id,
+                                        'status' => $inn->inn_status,
+                                        'message' => $message,
+                                        'created_at' => Carbon::now(),
+                                        'updated_at' => Carbon::now()
+
+                                    ]);
+                                }
+
+                                //
+                                $user_id = null;
+                                if (Auth::user()) {
+                                    $user_id = Auth::user()->id;
+                                }
+                                $contactlog = new ContactLog;
+                                $contactlog->type = '4';
+                                $contactlog->status = $inn->inn_status;
+                                $contactlog->user_id = $user_id;
+                                $contactlog->contact_id = $contact->id;
+                                $contactlog->bank_id = self::$bank_id;
+                                $contactlog->save();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (RequestException $e) {
+            $error = Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                $error .= Psr7\Message::toString($e->getResponse());
+            }
+            // логирование
+            $log = Log::create([
+                'request' => ['idd' => $duplikate->idd],
+                'answer' => ['error' => $error],
+                'type' => 'GET ' . $bank_config['host'] . $url,
+            ]);
+        }
+    }
+
+    // получение акций
+    public static function ActionGet()
+    {
+        $bank_config = config('bank.' . self::$bank_id);
+        $headers = [
+            'x-auth-token' => $bank_config['token'],
+            'Accept' => 'application/json',
+            'content-type' => 'multipart/form-data',
+        ];
+        $client = new Client([
+            'base_uri' => $bank_config['host'],
+        ]);
+        try {
+            $response = $client->request(
+                'GET',
+                $bank_config['action'],
+                ['headers' => $headers]
+            )->getBody()->getContents();
+            $response = json_decode($response);
+            if ($response->promotions) {
+                foreach ($response->promotions as $promotion) {
+                    $action = new Action();
+                    $action->title = $promotion->name;
+                    $action->idd = $promotion->id;
+                    $action->bank_id = self::$bank_id;
+                    $action->save();
+                }
+            }
+        } catch (RequestException $e) {
+            echo Psr7\Message::toString($e->getRequest());
+            if ($e->hasResponse()) {
+                echo Psr7\Message::toString($e->getResponse());
+            }
+        }
+    }
+
+
     // отправка заяки  в банк!!!!!!
     public static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
     {
@@ -341,194 +532,6 @@ class Bank2
                 'type' => 'GET ' . $bank_config['host'] . $url,
             ]);
         }
-    }
 
-    // отправка запроса на дублирование
-    public static function InnDublicate($inns, $contact_id)
-    {
-
-        // проверка или нету отправленной заявки в банк
-        $report = Contact::where('id', $contact_id)->whereHas('reports', function ($query) {
-            $query->where('bank_id', self::$bank_id);
-        })->count();
-        if ($report > 0) {
-            return false;
-        }
-
-        $bank_config = config('bank.' . self::$bank_id);
-        $headers = [
-            'x-auth-token: ' . $bank_config['token'],
-        ];
-        $client = new Client([
-            'base_uri' => $bank_config['host'],
-        ]);
-        if (env('APP_ENV') === 'testing') {
-            $url = $bank_config['inn_dublicate_test'];
-        } else {
-            $url = $bank_config['inn_dublicate'];
-        }
-        try {
-            $response = $client->post($url, [
-                'headers' => $headers,
-                RequestOptions::JSON => ['inns' => $inns],
-            ])->getBody()->getContents();
-            $response = json_decode($response);
-            // лог общий
-            $log = Log::create([
-                'request' => ['inns' => $inns],
-                'answer' => $response,
-                'type' => 'POST ' . $bank_config['host'] . $url,
-            ]);
-            $duplicate = Dublicate::create([
-                'idd' => $response->id,
-                'inns' => $inns,
-                'bank_id' => self::$bank_id
-            ]);
-        } catch (RequestException $e) {
-
-            $error = Psr7\Message::toString($e->getRequest());
-            if ($e->hasResponse()) {
-                $error .= Psr7\Message::toString($e->getResponse());
-            }
-            $log = Log::create([
-                'request' => ['inns' => $inns],
-                'answer' => ['error' => $error],
-                'type' => 'POST ' . $bank_config['host'] . $url,
-            ]);
-        }
-    }
-
-    // проверка отправленной задачи на дубли
-    public static function InnDublicateCheck($duplikate)
-    {
-        $bank_config = config('bank.' . self::$bank_id);
-        $headers = [
-            'x-auth-token: ' . $bank_config['token'],
-        ];
-        $client = new Client([
-            'base_uri' => $bank_config['host'],
-        ]);
-        if (env('APP_ENV') === 'testing') {
-            $url = $bank_config['inn_dublicate_get_test'] . $duplikate->idd;
-        } else {
-            $url = $bank_config['inn_dublicate_get'] . $duplikate->idd;
-        }
-        try {
-            $response = $client->request('GET', $url, [
-                'headers' => $headers
-            ])->getBody()->getContents();
-            $response = json_decode($response);
-            if ($response->status == "done") {
-
-                $duplikate->status = 1;
-                $duplikate->response = $response;
-                $duplikate->save();
-
-                $inns = $response->result->inns;
-                // логирование
-                $log = Log::create([
-                    'request' => ['idd' => $duplikate->idd],
-                    'answer' => $response,
-                    'type' => 'GET ' . $bank_config['host'] . $url,
-                ]);
-                if ($inns) {
-                    foreach ($inns as $inn) {
-                        $contacts = Contact::where('inn', $inn->inn)->get();
-                        if ($contacts) {
-                            $message = null;
-                            if (isset($inn->message)) $message = $inn->message;
-                            foreach ($contacts as $contact) {
-
-                                $r = DB::table('bank_contact')
-                                    ->where('contact_id', $contact->id)
-                                    ->where('bank_id', self::$bank_id)
-                                    ->first();
-
-                                if ($r) {
-                                    DB::table('bank_contact')
-                                        ->where('contact_id', $contact->id)
-                                        ->where('bank_id', self::$bank_id)
-                                        ->update([
-                                            'status' => $inn->inn_status,
-                                            'message' => $message,
-                                            'updated_at' => Carbon::now()
-                                        ]);
-                                } else {
-                                    DB::table('bank_contact')->insert([
-                                        'contact_id' => $contact->id,
-                                        'bank_id' => self::$bank_id,
-                                        'status' => $inn->inn_status,
-                                        'message' => $message,
-                                        'created_at' => Carbon::now(),
-                                        'updated_at' => Carbon::now()
-
-                                    ]);
-                                }
-
-                                //
-                                $user_id = null;
-                                if (Auth::user()) {
-                                    $user_id = Auth::user()->id;
-                                }
-                                $contactlog = new ContactLog;
-                                $contactlog->type = '4';
-                                $contactlog->status = $inn->inn_status;
-                                $contactlog->user_id = $user_id;
-                                $contactlog->contact_id = $contact->id;
-                                $contactlog->bank_id = self::$bank_id;
-                                $contactlog->save();
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (RequestException $e) {
-            $error = Psr7\Message::toString($e->getRequest());
-            if ($e->hasResponse()) {
-                $error .= Psr7\Message::toString($e->getResponse());
-            }
-            // логирование
-            $log = Log::create([
-                'request' => ['idd' => $duplikate->idd],
-                'answer' => ['error' => $error],
-                'type' => 'GET ' . $bank_config['host'] . $url,
-            ]);
-        }
-    }
-
-    // получение акций
-    public static function ActionGet()
-    {
-        $bank_config = config('bank.' . self::$bank_id);
-        $headers = [
-            'x-auth-token' => $bank_config['token'],
-            'Accept' => 'application/json',
-            'content-type' => 'multipart/form-data',
-        ];
-        $client = new Client([
-            'base_uri' => $bank_config['host'],
-        ]);
-        try {
-            $response = $client->request(
-                'GET',
-                $bank_config['action'],
-                ['headers' => $headers]
-            )->getBody()->getContents();
-            $response = json_decode($response);
-            if ($response->promotions) {
-                foreach ($response->promotions as $promotion) {
-                    $action = new Action();
-                    $action->title = $promotion->name;
-                    $action->idd = $promotion->id;
-                    $action->bank_id = self::$bank_id;
-                    $action->save();
-                }
-            }
-        } catch (RequestException $e) {
-            echo Psr7\Message::toString($e->getRequest());
-            if ($e->hasResponse()) {
-                echo Psr7\Message::toString($e->getResponse());
-            }
-        }
     }
 }

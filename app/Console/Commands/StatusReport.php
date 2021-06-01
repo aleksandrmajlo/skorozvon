@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Report;
+use App\Services\Bank1;
 use Illuminate\Console\Command;
 
 use GuzzleHttp\Client;
@@ -44,15 +45,16 @@ class StatusReport extends Command
         ini_set('memory_limit', '2048M');
         $status = config('reports');
         $reports = Report::get();
-//        $counter = 0;
         foreach ($reports as $report) {
             $bank_id = $report->bank_id;
             switch ($bank_id) {
                 case 1:
+                    if (in_array($report->status, $status['1'])) {
+                        Bank1::check($report);
+                    }
                     break;
                 case 2:
                     if (in_array($report->status, $status['2'])) {
-//                        $counter++;
                         Bank2::check($report);
                     }
                     break;

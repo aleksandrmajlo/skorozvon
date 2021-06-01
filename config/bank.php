@@ -1,5 +1,9 @@
 <?php
-
+/*
+'status' => 0, = показывать кнопку отправки заявки а остальное нафига 3 4?
+'inReport' => true,  означает что показываем в фильтре отчетов для поиска
+statusReport помоему не нужна
+*/
 return [
 
     '1' => [
@@ -11,6 +15,9 @@ return [
         'city' => '/public-api/v2/dictionaries?code=cities',
          // отправка  в банк
         'add' => '/public-api/v2/leads',
+        //получение статуса отправленной
+        'get_status' => '/public-api/v2/leads/',
+        
 
         'default_tariff' => "LP_RKO",
         'tariff' => [
@@ -34,22 +41,73 @@ return [
                  'type' => 'Проверка на дубль',
                  'status' => 0,
                  'inReport' => false
-             ],
+             ],  
 
              'fail' => [
-                 'text' => 'Заявка есть. Проверка не пройдена(Отклонена. Дубль)',
+                 'text' => 'Проверка не пройдена(Отклонена. Дубль или ошибка)',
                  'type' => 'Проверка на дубль',
                  'status' => 1,
                  'inReport' => false
              ],
+
              
              'inqueue' => [
                  'text' => 'Отправляем в банк',
                  'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                  'status' => 3,
                  'inReport' => true,
-                 'statusReport' => 1
+                 // 'statusReport' => 1
+             ],   
+
+             'SENT' => [
+                 'text' => 'Заявка отправлена',
+                 'type' => 'Заявка отправлена',
+                 'status' => 3,
+                 'inReport' => true,
+                 // 'statusReport' => 1
+             ],  
+
+             'DECLINED' => [
+                 'text' => 'Отказ по заявке ',
+                 'type' => 'Отказ по заявке ',
+                 'status' => 3,
+                 'inReport' => true,
+                 // 'statusReport' => 1
              ],
+
+             'UNDEFINED' => [
+                 'text' => 'В работе ',
+                 'type' => 'В работе ',
+                 'status' => 1,
+                 'inReport' => true,
+                 // 'statusReport' => 1
+             ],
+
+             'UNDEFINED' => [
+                 'text' => 'В работе ',
+                 'type' => 'В работе ',
+                 'status' => 1,
+                 'inReport' => true,
+                 // 'statusReport' => 1
+             ],
+
+
+             'DECLINED' => [
+                 'text' => 'Продукт закрыт отказом. ',
+                 'type' => 'Продукт закрыт отказом. ',
+                 'status' => 1,
+                 'inReport' => true,
+                 // 'statusReport' => 1
+             ],        
+
+             'COMPLETED' => [
+                 'text' => 'Продукт оформлен / для РКО - счет открыт ',
+                 'type' => 'Продукт оформлен / для РКО - счет открыт ',
+                 'status' => 1,
+                 'inReport' => true,
+                 // 'statusReport' => 1
+             ],
+
              
         ]
     ],
@@ -111,7 +169,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 3,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
 
@@ -120,7 +178,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 3,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'exported' => [
@@ -128,7 +186,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 4,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
 
@@ -137,7 +195,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 10,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'export_error_inn_duplicate' => [
@@ -145,7 +203,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 9,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created' => [
@@ -153,7 +211,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 6,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'closed' => [
@@ -161,7 +219,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 7,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
 
@@ -170,7 +228,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 9,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'process_client_meeting_at_bank' => [
@@ -178,7 +236,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 11,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'process_client_meeting_outside_bank' => [
@@ -186,7 +244,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 12,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'process_metting_waiting' => [
@@ -194,7 +252,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 13,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
 
@@ -203,7 +261,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 14,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'process_recall' => [
@@ -211,7 +269,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 15,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'process_active_stops' => [
@@ -219,7 +277,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 16,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'process_opening' => [
@@ -227,7 +285,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 6,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'process_client_info_waiting' => [
@@ -235,7 +293,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 17,
                 'inReport' => true,
-                'statusReport' => 1
+                // 'statusReport' => 1
             ],
 
             'created_error_invalid_region' => [
@@ -243,7 +301,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 18,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created_error_bank_canceled' => [
@@ -251,7 +309,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 19,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
 
@@ -260,7 +318,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 20,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created_error_client_canceled_not_request' => [
@@ -268,7 +326,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 21,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created_error_not_call' => [
@@ -276,7 +334,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 22,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created_error_invalid_phone' => [
@@ -284,7 +342,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 23,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created_error_duplicate' => [
@@ -292,7 +350,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 24,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
             'created_error_expired' => [
@@ -300,7 +358,7 @@ return [
                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
                 'status' => 25,
                 'inReport' => true,
-                'statusReport' => 2
+                // 'statusReport' => 2
             ],
 
 

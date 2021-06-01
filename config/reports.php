@@ -4,6 +4,13 @@
  * статусы при которых поверяем заявку в банке
  */
 return [
+    '1'=>[
+        'inqueue',
+        'SENT',
+        'UNDEFINED',
+        'IN_PROGRESS',
+        
+    ],
     '2'=>[
         'inqueue',
         'new',

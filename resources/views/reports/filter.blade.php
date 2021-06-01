@@ -49,7 +49,6 @@
                                     <option @if(request()->get('bank_'.$bank->id)==$key) selected @endif
                                     value="{{$key}}">{{$value['text']}}</option>
                                 @endif
-
                             @endforeach
                         </select>
                     </div>

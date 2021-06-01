@@ -28,7 +28,7 @@ class TestController extends Controller
     // проверка на дубли отправка заявки
     public function sendBankContacDuplicate(Request $request)
     {
-        $contact_id = 7;
+        $contact_id = 2;
 //        $contact_id = 95018;
         $contact = Contact::find($contact_id);
         $inns = [$contact->inn];
@@ -39,7 +39,7 @@ class TestController extends Controller
                     Bank1::InnDublicate($inns,$contact_id,$contact->phone);
                     break;
                 case 2:
-                    Bank2::InnDublicate($inns,$contact_id);
+//                    Bank2::InnDublicate($inns,$contact_id);
                     break;
             }
         }
@@ -102,6 +102,29 @@ tariff_id: "LP_RKO"
                 ->where('contact_id', $contact_id)
                 ->update(['status' => $result['status'],'message'=>$message]);
         }
+    }
+
+    public function  check(){
+
+        $status = config('reports');
+        $reports = Report::get();
+//        $counter = 0;
+        foreach ($reports as $report) {
+            $bank_id = $report->bank_id;
+            switch ($bank_id) {
+                case 1:
+                    if (in_array($report->status, $status['1'])) {
+                        Bank1::check($report);
+                    }
+                    break;
+                case 2:
+                    if (in_array($report->status, $status['2'])) {
+//                        Bank2::check($report);
+                    }
+                    break;
+            }
+        }
+
     }
 
 }

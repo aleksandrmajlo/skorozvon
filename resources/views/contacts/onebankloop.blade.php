@@ -12,7 +12,8 @@
         </p>
     @else
         <p class="text-danger">
-            {{$data_banks[$contact->id][$bank->id]['statusText']['text']}}<br>
+            {{$data_banks[$contact->id][$bank->id]['message']}}<br>
+            {{-- {{$data_banks[$contact->id][$bank->id]['statusText']['text']}}<br> --}}
         </p>
     @endif
 

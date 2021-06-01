@@ -27,18 +27,17 @@ class BankContact2
         $bank_data = [];
         $bank_config_all = config('bank');
         $bank_config = $bank_config_all[self::$bank_id];
-
         $r = $bank->contacts()->where('id', $contact->id)->first();
-
         if ($r) {
             if (isset($bank_config['statusText'][$r->pivot->status])) {
                 // при проверки заявки
                 $bank_data = [
                     'date' => $r->pivot->updated_at,
                     'value' => $bank_config['statusText'][$r->pivot->status]['status'],
-                    'status' => $r->pivot->status,
+                    'status' => $r->pivot->status, //'status' => 0, = показывать кнопку отправки заявки
                     'statusText' => $bank_config['statusText'][$r->pivot->status],
-                    'message' => $r->pivot->message
+                    //'message' => $r->pivot->message['statusText']['text']
+                    'message' => $bank_config['statusText'][$r->pivot->status]['text']
                 ];
             } else {
                 // проверка или отправлялась заявка
