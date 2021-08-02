@@ -24,7 +24,6 @@ class CronController extends Controller
 
     public function cron_duplicate_check(){
         Artisan::call('duplicate:check');
-
     }
 
 

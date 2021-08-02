@@ -14,7 +14,10 @@
             <div class="col-md-12">
                 <h2>Логирование событий</h2>
                 <p ><span class="text-bold">{{$contact->created_at}} {{$contact->user->fio}}</span> добавил контакт</p>
-                <contact-log id="{{$contact->id}}"></contact-log>
+                <div class="table-responsive">
+                    <contact-log id="{{$contact->id}}"></contact-log>
+                </div>
+
             </div>
         </div>
 

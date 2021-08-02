@@ -8,24 +8,39 @@
                 ></vue-loaders-ball-beat>
             </div>
             <h2 class="mb-3">РАЗРЕШЕНИЯ НА ОТПРАВКУ В БАНКИ:</h2>
-            <div class="row mb-3" v-for="bank in banks" :key="bank.id">
-                <h5 class="col-md-2">{{ bank.name }}</h5>
-                <div class="col-auto" v-for="operator in operators" :key="operator.id">
-                    <div class="form-check">
-                        <input
-                            type="checkbox"
-                            class="form-check-input"
-                            v-model="check"
-                            :value="bank.id + '_' + operator.id"
-                            :id="'check' + bank.id + '_' + operator.id"
-                        />
-                        <label
-                            class="form-check-label"
-                            :for="'check' + bank.id + '_' + operator.id"
-                        >{{ operator.fio }}</label
-                        >
-                    </div>
-                </div>
+
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                       <tr>
+                           <th>Оператор/Банки</th>
+                           <td v-for="bank in banks" :key="bank.id+'td'">
+                               {{ bank.name }}
+                           </td>
+                       </tr>
+                    </thead>
+
+                    <tbody>
+                         <tr v-for="operator in operators" :key="operator.id">
+                             <th>
+                                 {{ operator.fio }}
+                             </th>
+                             <td v-for="bank in banks" :key="bank.id">
+                                 <div class="form-check">
+                                     <input
+                                         type="checkbox"
+                                         class="form-check-input"
+                                         v-model="check"
+                                         :value="bank.id + '_' + operator.id"
+                                         :id="'check' + bank.id + '_' + operator.id"
+                                     />
+
+                                 </div>
+                             </td>
+                         </tr>
+                    </tbody>
+                </table>
             </div>
             <button @click.prevent="save" class="btn btn-primary">Сохранить</button>
         </div>

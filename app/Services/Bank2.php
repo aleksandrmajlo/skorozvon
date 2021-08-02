@@ -351,7 +351,8 @@ class Bank2
                         ],
                     ]
                 ])->getBody()->getContents();
-            } else {
+            }
+            else {
                 $response = $client->post($url, [
                     'headers' => $headers,
                     'multipart' => [
@@ -419,6 +420,7 @@ class Bank2
             $contactlog->contact_id = $contact->id;
             $contactlog->bank_id = self::$bank_id;
             $contactlog->save();
+
         } catch (RequestException $e) {
 
             $resust['input'] = Psr7\Message::toString($e->getRequest());
@@ -502,7 +504,6 @@ class Bank2
                     'updated_at' => Carbon::now(),
                 ]);
             }
-
             //
             $user_id = null;
             if (Auth::user()) {

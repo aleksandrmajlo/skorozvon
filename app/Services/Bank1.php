@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 class Bank1
 {
     private static $bank_id = 1;
+
     // получение городов тарифов
     public static function getCityTariff()
     {
@@ -70,15 +71,21 @@ class Bank1
             $tariff->save();
         }
     }
+
     // отправка запроса на дублирование
     public static function InnDublicate($inn, $contact_id, $phone)
     {
         //дописать проверку на дубли !!!!!!!!!!!!!!
         // если есть null не проверяем
-        $count = DB::table('bank_contact')->where('contact_id', $contact_id)
-            ->where('bank_id', self::$bank_id)->count();
-        if ($count > 0) return false;
-
+        $bank_contact = DB::table('bank_contact')->where('contact_id', $contact_id)
+            ->where('bank_id', self::$bank_id)->first();
+        if ($bank_contact && $bank_contact->status !== "fail") {
+            return false;
+        } elseif ($bank_contact && $bank_contact->status == "fail") {
+            // если есть заявка причем со статусом ошибки еще раз проверяем
+            DB::table('bank_contact')->where('contact_id', $contact_id)
+                ->where('bank_id', self::$bank_id)->delete();
+        }
         $bank_config = config('bank.' . self::$bank_id);
         $headers = [
             'api-key' => $bank_config['token'],
@@ -104,7 +111,6 @@ class Bank1
                 ],
             ])->getBody()->getContents();
             $response = json_decode($response);
-
             if (is_null($response)) {
                 $log = Log::create([
                     'request' => ['inns' => $inn],
@@ -121,29 +127,41 @@ class Bank1
                 ]);
             }
         } catch (RequestException $e) {
-
-            $error = Psr7\Message::toString($e->getRequest());
+            $bank_err = config('bank1_err');
+            $error = '';
             if ($e->hasResponse()) {
-                $error .= Psr7\Message::toString($e->getResponse());
+                $str = Psr7\Message::toString($e->getResponse());
+                $parse = Psr7\Message::parseMessage($str);
+                $body = json_decode($parse['body']);
+                if ($body === null && json_last_error() !== JSON_ERROR_NONE) {
+                    // ошибка  разбора  ошибки
+                }else{
+                    if(isset($bank_err[$body->errors[0]->code])){
+                        $error = $bank_err[$body->errors[0]->code];
+                    }else{
+                        $error = $body->errors[0]->title . '</br>' . $body->errors[0]->detail;
+                    }
+                }
             }
             $log = Log::create([
                 'request' => ['inns' => $inn],
-                'answer' => ['error' => $error],
+                'answer' => ['error' => $str],
                 'type' => 'POST ' . $bank_config['host'] . $url,
             ]);
-
             DB::table('bank_contact')->insert([
                 'contact_id' => $contact_id,
                 'bank_id' => self::$bank_id,
                 'status' => 'fail',
-                'message' => $e->getMessage(),
+                'message' => $error,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
         }
     }
+
     // отправка заяки  в банк!!!!!!
-    public static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
+    public
+    static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
     {
 
         $bank_config = config('bank.' . self::$bank_id);
@@ -244,8 +262,10 @@ class Bank1
         }
         return $result;
     }
+
     // получение статуса заявки в банке
-    public static function check($report)
+    public
+    static function check($report)
     {
         $id = $report->idd;
         $bank_config = config('bank.' . $report->bank_id);
@@ -316,8 +336,10 @@ class Bank1
             ]);
         }
     }
+
     // получение данных для этого контакта
-    public static function ContactData($bank, $contact)
+    public
+    static function ContactData($bank, $contact)
     {
 
         // тут проверка или есть уже отношение банк

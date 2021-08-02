@@ -28,7 +28,7 @@ class TestController extends Controller
     // проверка на дубли отправка заявки
     public function sendBankContacDuplicate(Request $request)
     {
-        $contact_id = 2;
+        $contact_id = 7;
 //        $contact_id = 95018;
         $contact = Contact::find($contact_id);
         $inns = [$contact->inn];

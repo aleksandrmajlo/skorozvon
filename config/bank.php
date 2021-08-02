@@ -13,11 +13,11 @@ return [
         'host' => 'https://partner.alfabank.ru',
 
         'city' => '/public-api/v2/dictionaries?code=cities',
-         // отправка  в банк
+        // отправка  в банк
         'add' => '/public-api/v2/leads',
         //получение статуса отправленной
         'get_status' => '/public-api/v2/leads/',
-        
+
 
         'default_tariff' => "LP_RKO",
         'tariff' => [
@@ -35,85 +35,76 @@ return [
 
 
         'statusText' => [
-             
-             'success' => [
-                 'text' => 'ПРОВЕРКА ВЫПОЛНЕНА. ДУБЛЕЙ НЕТ',
-                 'type' => 'Проверка на дубль',
-                 'status' => 0,
-                 'inReport' => false
-             ],  
 
-             'fail' => [
-                 'text' => 'Проверка не пройдена(Отклонена. Дубль или ошибка)',
-                 'type' => 'Проверка на дубль',
-                 'status' => 1,
-                 'inReport' => false
-             ],
+            'success' => [
+                'text' => 'ПРОВЕРКА ВЫПОЛНЕНА. ДУБЛЕЙ НЕТ',
+                'type' => 'Проверка на дубль',
+                'status' => 0,
+                'inReport' => false
+            ],
 
-             
-             'inqueue' => [
-                 'text' => 'Отправляем в банк',
-                 'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
-                 'status' => 3,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],   
-
-             'SENT' => [
-                 'text' => 'Заявка отправлена',
-                 'type' => 'Заявка отправлена',
-                 'status' => 3,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],  
-
-             'DECLINED' => [
-                 'text' => 'Отказ по заявке ',
-                 'type' => 'Отказ по заявке ',
-                 'status' => 3,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],
-
-             'UNDEFINED' => [
-                 'text' => 'В работе ',
-                 'type' => 'В работе ',
-                 'status' => 1,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],
-
-             'UNDEFINED' => [
-                 'text' => 'В работе ',
-                 'type' => 'В работе ',
-                 'status' => 1,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],
+            'fail' => [
+                'text' => 'Проверка не пройдена(Отклонена. Дубль или ошибка)',
+                'type' => 'Проверка на дубль',
+                'status' => 1,
+                'inReport' => false
+            ],
 
 
-             'DECLINED' => [
-                 'text' => 'Продукт закрыт отказом. ',
-                 'type' => 'Продукт закрыт отказом. ',
-                 'status' => 1,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],        
+            'inqueue' => [
+                'text' => 'Отправляем в банк',
+                'type' => 'ПОЛУЧЕНИЕ СТАТУСА ЗАЯВКИ',
+                'status' => 3,
+                'inReport' => true,
+                // 'statusReport' => 1
+            ],
 
-             'COMPLETED' => [
-                 'text' => 'Продукт оформлен / для РКО - счет открыт ',
-                 'type' => 'Продукт оформлен / для РКО - счет открыт ',
-                 'status' => 1,
-                 'inReport' => true,
-                 // 'statusReport' => 1
-             ],
+            'SENT' => [
+                'text' => 'Заявка отправлена',
+                'type' => 'Заявка отправлена',
+                'status' => 3,
+                'inReport' => true,
+                // 'statusReport' => 1
+            ],
 
-             
+            'DECLINED' => [
+                'text' => 'Отказ по заявке ',
+                'type' => 'Отказ по заявке ',
+                'status' => 3,
+                'inReport' => true,
+                // 'statusReport' => 1
+            ],
+
+            'UNDEFINED' => [
+                'text' => 'В работе ',
+                'type' => 'В работе ',
+                'status' => 1,
+                'inReport' => true,
+                // 'statusReport' => 1
+            ],
+
+            'DECLINED' => [
+                'text' => 'Продукт закрыт отказом. ',
+                'type' => 'Продукт закрыт отказом. ',
+                'status' => 1,
+                'inReport' => true,
+                // 'statusReport' => 1
+            ],
+
+            'COMPLETED' => [
+                'text' => 'Продукт оформлен / для РКО - счет открыт ',
+                'type' => 'Продукт оформлен / для РКО - счет открыт ',
+                'status' => 1,
+                'inReport' => true,
+                // 'statusReport' => 1
+            ],
+
+
         ]
     ],
 
     '2' => [
-        
+
         'token' => env('BANK_OTKRYTIE'),
         'host' => 'https://openpartners.ru',
 
