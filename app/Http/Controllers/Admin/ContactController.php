@@ -121,6 +121,7 @@ class ContactController extends Controller
                     break;
                 case 2:
                     $bank_data[$bank->id] = BankContact2::ContactData($bank, $contact);
+//                    dd($bank_data);
                     break;
                 default:
                     $bank_data[$bank->id] = [

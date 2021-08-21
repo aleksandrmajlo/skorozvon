@@ -160,8 +160,7 @@ class Bank1
     }
 
     // отправка заяки  в банк!!!!!!
-    public
-    static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
+    public    static function send($contact_id, $tariff_id, $city, $comment = '', $action_id = '', $acquiring = 0)
     {
 
         $bank_config = config('bank.' . self::$bank_id);

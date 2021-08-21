@@ -61,7 +61,8 @@ Route::group(['prefix' => 'ajax'], function () {
     Route::post('/contacts/update', 'App\Http\Controllers\Api\ContactAjax@update');
     Route::post('/contacts/log', 'App\Http\Controllers\Api\ContactAjax@log');
     // отправка заявки в банк !!!!!
-    Route::post('/contact/sendBankContac', 'App\Http\Controllers\Api\ContactAjax@sendBankContac');
+    Route::post('/contact/sendBankContac',
+        'App\Http\Controllers\Api\ContactAjax@sendBankContac');
     // опрос банков на дубли
     Route::post('/contact/sendBankContacDuplicate', 'App\Http\Controllers\Api\ContactAjax@sendBankContacDuplicate');
     // обновление заявки
@@ -87,6 +88,7 @@ Route::get('cron_city','App\Http\Controllers\CronController@cron_city');
 
 //  проверка статуса отправленных заявок
 Route::get('cron_statusreport','App\Http\Controllers\CronController@cron_statusreport');
+//проверка статуса отправленных заявок  и возвращение назад
 Route::get('statusreport','App\Http\Controllers\CronController@statusreport');
 
 //  проверка на дубли отправленных заявок

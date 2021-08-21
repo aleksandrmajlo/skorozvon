@@ -172,28 +172,29 @@ class UserController extends Controller
     protected function validator(array $data)
     {
         return Validator::make(
-            $data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8'],
-        ]);
-
+            $data,
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8'],
+            ]
+        );
     }
     public function readUser(Request $request)
     {
-        $user=User::findOrFail($request->id);
+        $user = User::findOrFail($request->id);
         if ($request->password) {
             $validatedData = $request->validate([
                 'password' => ['required', 'string', 'min:6'],
             ]);
-            $user->password=Hash::make($request->password);
+            $user->password = Hash::make($request->password);
         }
-        $user->fio=$request->fio;
-        $user->phone=$request->phone;
-        $user->role=$request->role;
-        $user->status=$request->status;
-        $user->upload=$request->upload;
-        $user->ContactDownload=$request->ContactDownload;
+        $user->fio = $request->fio;
+        $user->phone = $request->phone;
+        $user->role = $request->role;
+        $user->status = $request->status;
+        $user->upload = $request->upload;
+        $user->ContactDownload = $request->ContactDownload;
         $user->save();
 
         return redirect('/admin/users/' . $user->id . '/edit')->with('status', 'Profile updated!');

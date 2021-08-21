@@ -103,6 +103,7 @@ return [
         ]
     ],
 
+
     '2' => [
 
         'token' => env('BANK_OTKRYTIE'),
